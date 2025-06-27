@@ -1,0 +1,382 @@
+openapi: 3.0.0
+info:
+  title: What to Watch API
+  version: 1.0.0
+  description: API for the "What to Watch" application, providing personalized
+    content recommendations.
+servers:
+  - url: http://localhost:3000
+    description: Development server
+paths:
+  /genres:
+    get:
+      operationId: get_genres
+      summary: Retrieve a list of available genres
+      tags:
+        - Lookups
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Maximum number of genres to return.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of genres to skip before starting to collect the result set.
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - genre_id
+              - genre_name
+            default: genre_name
+          description: Field to sort the genres by.
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+          description: Order of sorting (ascending or descending).
+      responses:
+        "200":
+          description: A list of genres.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  genres:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/genre"
+                  total:
+                    type: integer
+                    description: Total number of genres available.
+        "500":
+          description: Internal Server Error
+  /moods:
+    get:
+      operationId: get_moods
+      summary: Retrieve a list of supported moods
+      tags:
+        - Lookups
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Maximum number of moods to return.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of moods to skip before starting to collect the result set.
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - mood_id
+              - mood_name
+            default: mood_name
+          description: Field to sort the moods by.
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+          description: Order of sorting (ascending or descending).
+      responses:
+        "200":
+          description: A list of moods.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  moods:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/mood"
+                  total:
+                    type: integer
+                    description: Total number of moods available.
+        "500":
+          description: Internal Server Error
+  /streaming-services:
+    get:
+      operationId: get_streaming_services
+      summary: Retrieve a list of available streaming services
+      tags:
+        - Lookups
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Maximum number of services to return.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of services to skip before starting to collect the result set.
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - service_id
+              - service_name
+            default: service_name
+          description: Field to sort the services by.
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+          description: Order of sorting (ascending or descending).
+      responses:
+        "200":
+          description: A list of streaming services.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  streaming_services:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/streaming_service"
+                  total:
+                    type: integer
+                    description: Total number of services available.
+        "500":
+          description: Internal Server Error
+  /recommendations:
+    post:
+      operationId: get_recommendation
+      summary: Request a content recommendation based on user preferences
+      tags:
+        - Recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/recommendation_request"
+      responses:
+        "200":
+          description: Successfully retrieved a recommendation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/recommendation_response"
+        "400":
+          description: Bad Request - Invalid input parameters provided.
+        "500":
+          description: Internal Server Error - Failed to generate recommendation.
+  /recommendations/regenerate:
+    post:
+      operationId: regenerate_recommendation
+      summary: Request a different recommendation using the same previous criteria
+      tags:
+        - Recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/regenerate_request"
+      responses:
+        "200":
+          description: Successfully retrieved a new recommendation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/recommendation_response"
+        "400":
+          description: Bad Request - Missing session_id or no previous recommendation
+            found for the session.
+        "500":
+          description: Internal Server Error - Failed to generate a new recommendation.
+components:
+  schemas:
+    genre:
+      type: object
+      properties:
+        genre_id:
+          type: number
+          description: Unique identifier for the genre.
+        genre_name:
+          type: string
+          description: Name of the genre (e.g., "Action").
+      required:
+        - genre_id
+        - genre_name
+    mood:
+      type: object
+      properties:
+        mood_id:
+          type: number
+          description: Unique identifier for the mood.
+        mood_name:
+          type: string
+          description: Name of the mood (e.g., "Relaxed").
+      required:
+        - mood_id
+        - mood_name
+    streaming_service:
+      type: object
+      properties:
+        service_id:
+          type: number
+          description: Unique identifier for the streaming service.
+        service_name:
+          type: string
+          description: Name of the streaming service (e.g., "Netflix").
+        service_logo_url:
+          type: string
+          nullable: true
+          description: URL for the streaming service'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'s logo.
+      required:
+        - service_id
+        - service_name
+    recommendation_request:
+      type: object
+      properties:
+        session_id:
+          type: string
+          description: Unique identifier for the user'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'s current session, used for tracking
+            and '"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'regenerate'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"' requests.
+        content_type:
+          type: string
+          enum:
+            - Movie
+            - TV Show
+            - Both
+          description: The type of content the user is looking for.
+        mood:
+          type: string
+          description: The user'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'s current mood, used to influence genre recommendations
+            (e.g., "Amused", "Thrilled").
+        genres:
+          type: array
+          items:
+            type: string
+          description: A list of preferred genre names (e.g., ["Comedy", "Animation"]).
+        streaming_services:
+          type: array
+          items:
+            type: string
+          description: A list of streaming service names the user has access to (e.g.,
+            ["Netflix", "Disney+"]).
+      required:
+        - session_id
+        - content_type
+        - mood
+        - genres
+        - streaming_services
+    recommendation_response:
+      type: object
+      properties:
+        recommended_content:
+          $ref: "#/components/schemas/content_details"
+          nullable: true
+          description: Details of the recommended content, or null if no recommendation
+            could be found.
+        message:
+          type: string
+          description: Status message, e.g., "Recommendation generated successfully." or
+            "No suitable recommendations found."
+      required:
+        - recommended_content
+        - message
+    content_details:
+      type: object
+      properties:
+        content_id:
+          type: number
+          description: Unique identifier for the content item.
+        title:
+          type: string
+          description: Title of the movie or TV show.
+        synopsis:
+          type: string
+          description: A brief summary of the content.
+        poster_url:
+          type: string
+          description: URL to the primary poster image.
+        content_type:
+          type: string
+          enum:
+            - Movie
+            - TV Show
+          description: Type of content.
+        runtime_minutes:
+          type: number
+          nullable: true
+          description: Duration of the movie in minutes. Null for TV Shows.
+        seasons_count:
+          type: number
+          nullable: true
+          description: Number of seasons for a TV Show. Null for Movies.
+        release_year:
+          type: number
+          description: The year the content was released.
+        content_rating:
+          type: string
+          nullable: true
+          description: MPAA rating (e.g., G, PG) or TV rating (e.g., TV-Y7, TV-MA).
+        genres:
+          type: array
+          items:
+            type: string
+          description: List of genres associated with the content.
+        streaming_services:
+          type: array
+          items:
+            type: string
+          description: List of streaming services where the content is available.
+      required:
+        - content_id
+        - title
+        - synopsis
+        - poster_url
+        - content_type
+        - release_year
+        - genres
+        - streaming_services
+    regenerate_request:
+      type: object
+      properties:
+        session_id:
+          type: string
+          description: The user'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'"'s session identifier, used to retrieve previous preferences.
+      required:
+        - session_id
+
+
+
+
+
+
+
+
